@@ -1,0 +1,32 @@
+#centerPane{
+	margin-left: 20%;
+}
+
+#mapCanvas{
+	width: 200px;
+	height: 200px;
+}
+
+#levelOfPlayInput{
+	width: 11em;
+}
+
+#handInput{
+	width: 11em;
+}
+
+#typeOfPlayTable{
+	border: 0;
+	border-spacing: 0;
+	padding: 3px;
+}
+#availabilityTable{
+	border: 0;
+	border-spacing: 0;
+	padding: 3px;
+	font-size: 0.9em;
+}
+*[name='titleRemark']{
+	color: grey;
+	font-size: smaller;
+}
