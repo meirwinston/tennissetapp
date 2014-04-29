@@ -866,6 +866,7 @@ public class DaoManagerImpl implements DaoManager{
 		Session s = getSession();
 		ImageFile imageFile = null;
 		
+		logger.debug("updatePlayerProfileImage: " + form);
 		if(form.getUserAccountId() != null){
 			Query query = s.getNamedQuery("TennisPlayerProfile.findProfileImageFile");
 			query.setLong("userAccountId", form.getUserAccountId());
@@ -889,6 +890,8 @@ public class DaoManagerImpl implements DaoManager{
 			query = s.getNamedQuery("TennisPlayerProfile.updateProfileImageFile");
 			query.setLong("userAccountId", form.getUserAccountId());
 			query.setLong("profileImageFileId", imageFile.getImageFileId());
+			query.executeUpdate();
+			logger.debug("updatePlayerProfileImage ImageFile persisted " + imageFile);
 		}
 		
 		return imageFile;

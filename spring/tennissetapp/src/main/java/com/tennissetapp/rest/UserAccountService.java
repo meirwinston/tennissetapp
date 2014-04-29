@@ -153,6 +153,19 @@ public class UserAccountService {
 		return r;
 	}
 	
+	@PreAuthorize("hasRole('ROLE_USER')")
+	@Transactional
+	@ResponseBody
+	@RequestMapping(value = {"/service/accountId"}, method = {RequestMethod.GET})
+	public ServiceResponse accountId(Principal p){
+		ServiceResponse r = new ServiceResponse();
+		if(p != null){
+			r.put("userAccountId", TennisSetAppUtils.cast(p).getUserAccountId());
+		}
+		
+		return r;
+	}
+	
 	@ResponseBody
 	@RequestMapping(value = {"/service/login"}, method = {RequestMethod.POST})
 	public ServiceResponse login(@Valid SigninForm form, BindingResult result, HttpServletRequest request){
@@ -163,6 +176,10 @@ public class UserAccountService {
 				Authentication auth = new UsernamePasswordAuthenticationToken(args.email, args.password);
 				Authentication authResult = authenticationManager.authenticate(auth);
 				SecurityContextHolder.getContext().setAuthentication(authResult);
+				AppUserDetails userDetails = (AppUserDetails)authResult.getPrincipal();
+				response.put("userAccountId", userDetails.getUserAccountId());
+//				org.springframework.security.authentication.UsernamePasswordAuthenticationToken@bbdc91b3: Principal: AppUserDetails [userAccountId=63, username=darawinston, password=null, isEnabled=true, isCredentialsNonExpired=true, isAccountNonLocked=true, isAccountNonExpired=true]; Credentials: [PROTECTED]; Authenticated: true; Details: null; Granted Authorities: ROLE_USER
+
 			} catch (Exception exp) {
 				response.put("exception", exp.getMessage());
 			}
@@ -227,7 +244,7 @@ public class UserAccountService {
 	throws IOException {
 		
 //		logger.debug("the session is " + request.getSession().getId());
-		logger.debug("--->signupUser " + form);
+//		logger.debug("--->signupUser " + form);
 		SignupArgs args = (SignupArgs)form.getArguments(SignupArgs.class);
 		args.ipAddress = TennisSetAppUtils.getClientIP(request);
 		args.username = generateUsername(args.email);
@@ -264,7 +281,7 @@ public class UserAccountService {
 		}
 		UserAccountPrimaryArgs args = form.getArguments(UserAccountPrimaryArgs.class);
 		AppUserDetails userDetails = TennisSetAppUtils.cast(principal);
-		logger.debug("updatePrimary++++++++++ " + userDetails + ", " + principal);
+//		logger.debug("updatePrimary++++++++++ " + userDetails + ", " + principal);
 		args.userAccountId = userDetails.getUserAccountId();
 		
 		UserAccount userAccount = daoManager.updateAccountPrimaryFields(args);

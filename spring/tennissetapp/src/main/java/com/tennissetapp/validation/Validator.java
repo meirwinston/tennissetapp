@@ -108,7 +108,6 @@ public abstract class Validator implements org.springframework.validation.Valida
 		args.administrativeAreaLevel2ShortName = f.getAdministrativeAreaLevel2ShortName();
 		
 		if(StringUtils.isEmpty(f.getCountry())){
-//			errors.rejectValue("country",ErrorCode.EMPTY_FIELD,"Incomplete address");
 			valid = false;
 		}
 		else{
@@ -116,14 +115,12 @@ public abstract class Validator implements org.springframework.validation.Valida
 		}
 		
 		if(StringUtils.isEmpty(f.getCountryShortName())){
-//			errors.rejectValue("countryShortName",ErrorCode.EMPTY_FIELD,"Incomplete address");
 			valid = false;
 		}
 		else{
 			args.countryShortName = f.getCountryShortName();
 		}
 		if(StringUtils.isEmpty(f.getLocality())){ //Jerusalem, East Brunswick
-//			errors.rejectValue("locality",ErrorCode.EMPTY_FIELD,"Incomplete address");
 			valid = false;
 		}
 		else{
@@ -131,7 +128,6 @@ public abstract class Validator implements org.springframework.validation.Valida
 		}
 		
 		if(StringUtils.isEmpty(f.getLocalityShortName())){
-//			errors.rejectValue("localityShortName",ErrorCode.EMPTY_FIELD,"Incomplete address");
 			valid = false;
 		}
 		else{
@@ -141,24 +137,21 @@ public abstract class Validator implements org.springframework.validation.Valida
 		args.postalCode = f.getPostalCode();
 		
 		if(StringUtils.isEmpty(f.getRoute())){
-//			errors.rejectValue("route",ErrorCode.EMPTY_FIELD,"Incomplete address");
-			valid = false;
+//			valid = false; //not required
 		}
 		else{
 			args.route = f.getRoute();
 		}
 		
 		if(StringUtils.isEmpty(f.getRouteShortName())){
-//			errors.rejectValue("routeShortName",ErrorCode.EMPTY_FIELD,"Incomplete address");
-			valid = false;
+//			valid = false; //not required
 		}
 		else{
 			args.routeShortName = f.getRouteShortName();
 		}
 		
 		if(StringUtils.isEmpty(f.getStreetNumber())){
-//			errors.rejectValue("streetNumber",ErrorCode.EMPTY_FIELD,"Incomplete address");
-			valid = false;
+//			valid = false; //not required anymore
 		}
 		else{
 			args.streetNumber = f.getStreetNumber();

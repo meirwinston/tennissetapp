@@ -49,72 +49,56 @@ public class FileUploadService extends ControllerBase{
 	@Value(value="${tennissetapp.diskresources.imagesUrl}")
 	private String imagesUrl;
 	
-	
-	@RequestMapping(value = "/service/upload-profile-photo", method = {RequestMethod.POST})
-	@ResponseBody
-	@Transactional
-	public Map<String,Object> uploadProfilePhoto(HttpServletRequest request, HttpServletResponse response)
-	throws Exception {
-		logger.debug("--->uploadProfilePhoto " + request.getUserPrincipal());
-//		if(request.getUserPrincipal() == null){
-//			throw new NotAuthorizedException();
-//		}
-		Map<String,Object> map = new HashMap<String,Object>();
-		
-		//always store in session
-		String id = storeInSessionMobile(request, response);
-		map.put("imageUrl", globalUrl + "/imageservice?id=" + id);
-		map.put("imageId",id);
-		
-//		if(request.getUserPrincipal() == null){ //store in session
-//			String id = storeInSessionMobile(request, response);
-//			map.put("imageUrl", globalUrl + "/imageservice?id=" + id);
-//			map.put("imageId",id);
-//		}
-//		else{ //store in disk
-//			ImageMetaData img =  storeImageInDiskMobile(request, response);
-//			UpdateProfileImageForm form = new UpdateProfileImageForm();
-//			form.setImageMetaData(img);
-//			form.setUserAccountId((Long)request.getSession().getAttribute(Constants.SessionAttributeKey.USER_ID));
-//			
-//			if(img != null){
-//				map.put("imageUrl", getImageGlobalUrl(img));
-//				daoManager.updateProfileImage(form);
-//			}
-//		}
-		
-		
-		return map;
-	}
-	
+	//In session
 //	@RequestMapping(value = "/service/upload-profile-photo", method = {RequestMethod.POST})
 //	@ResponseBody
 //	@Transactional
 //	public Map<String,Object> uploadProfilePhoto(HttpServletRequest request, HttpServletResponse response)
 //	throws Exception {
-//		logger.debug("--->uploadProfilePhoto");
+//		logger.debug("--->uploadProfilePhoto " + request.getUserPrincipal());
+////		if(request.getUserPrincipal() == null){
+////			throw new NotAuthorizedException();
+////		}
 //		Map<String,Object> map = new HashMap<String,Object>();
 //		
-//		if(request.getUserPrincipal() == null){ //store in session
-//			String id = storeInSession(request, response);
-//			map.put("imageUrl", globalUrl + "/imageservice?id=" + id);
-//			map.put("imageId",id);
-//		}
-//		else{ //store in disk
-//			ImageMetaData img =  storeImageInDisk(request, response);
-//			UpdateProfileImageForm form = new UpdateProfileImageForm();
-//			form.setImageMetaData(img);
-//			form.setUserAccountId((Long)request.getSession().getAttribute(Constants.SessionAttributeKey.USER_ID));
-//			
-//			if(img != null){
-//				map.put("imageUrl", getImageGlobalUrl(img));
-//				daoManager.updateProfileImage(form);
-//			}
-//		}
-//		
+//		//always store in session
+//		String id = storeInSessionMobile(request, response);
+//		map.put("imageUrl", globalUrl + "/imageservice?id=" + id);
+//		map.put("imageId",id);
 //		
 //		return map;
 //	}
+	
+	
+	//check if 
+	//(Long)request.getSession().getAttribute(Constants.SessionAttributeKey.USER_ID)
+	//is getting the user account Id or we need to use getPrincipal
+	@RequestMapping(value = "/service/upload-profile-photo", method = {RequestMethod.POST})
+	@ResponseBody
+	@Transactional
+	public Map<String,Object> uploadProfilePhoto(HttpServletRequest request, HttpServletResponse response)
+	throws Exception {
+//		logger.debug("--->uploadProfilePhoto");
+		Map<String,Object> map = new HashMap<String,Object>();
+		
+		if(request.getUserPrincipal() == null){ //store in session
+			String id = storeInSession(request, response);
+			map.put("imageUrl", globalUrl + "/imageservice?id=" + id);
+			map.put("imageId",id);
+		}
+		else{ //store in disk
+			ImageMetaData img =  storeImageInDiskMobile(request, response);
+			UpdateProfileImageForm form = new UpdateProfileImageForm();
+			form.setImageMetaData(img);
+			form.setUserAccountId(TennisSetAppUtils.cast(request.getUserPrincipal()).getUserAccountId());
+			
+			if(img != null){
+				map.put("imageUrl", getImageGlobalUrl(img));
+				daoManager.updatePlayerProfileImage(form);
+			}
+		}
+		return map;
+	}
 	
 	private String getImageGlobalUrl(ImageMetaData img){
 		return globalUrl + this.imagesUrl + "/" + ImageFile.SystemFolder.PROFILE_PHOTOS + "/"+ img.fileName;
@@ -122,7 +106,7 @@ public class FileUploadService extends ControllerBase{
 	
 	protected ImageMetaData storeImageInDiskMobile(HttpServletRequest request, HttpServletResponse response) 
 		throws Exception {
-			logger.debug("--->storeImageInDiskMobile");
+//			logger.debug("--->storeImageInDiskMobile");
 			ImageMetaData img = null;
 			ServletFileUpload upload = new ServletFileUpload(factory);
 			if(ServletFileUpload.isMultipartContent(request)){
@@ -141,7 +125,7 @@ public class FileUploadService extends ControllerBase{
 //	http://localhost:8080/tennissetapp/images/PROFILE_PHOTOS/8b41c0f4-f32a-4fdf-8237-e0cf03790a11.JPEG
 	protected ImageMetaData storeImageInDisk(HttpServletRequest request, HttpServletResponse response) 
 	throws Exception {
-		logger.debug("--->storeImageInDisk");
+//		logger.debug("--->storeImageInDisk");
 		ImageMetaData img = null;
 		ServletFileUpload upload = new ServletFileUpload(factory);
 		if(ServletFileUpload.isMultipartContent(request)){
