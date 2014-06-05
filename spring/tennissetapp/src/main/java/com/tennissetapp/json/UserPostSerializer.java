@@ -25,6 +25,9 @@ public class UserPostSerializer extends JsonSerializer<UserPost>{
 			if(userPost.getPlayerProfile() != null && userPost.getPlayerProfile().getProfileImageFile() != null){
 				g.writeStringField("userProfileImage", userPost.getPlayerProfile().getProfileImageFile().getFileName());
 			}
+			if(userPost.getToUserAccount() != null && userPost.getToUserAccount().getPlayerProfile() != null && userPost.getToUserAccount().getPlayerProfile().getProfileImageFile() != null){
+				g.writeStringField("toUserProfileImage", userPost.getToUserAccount().getPlayerProfile().getProfileImageFile().getFileName());
+			}
 			g.writeStringField("status", userPost.getStatus().toString());
 			g.writeStringField("userFirstName", userPost.getUserAccount().getFirstName());
 			g.writeStringField("userLastName", userPost.getUserAccount().getLastName());

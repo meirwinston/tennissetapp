@@ -53,7 +53,7 @@ public class RootConfig implements ApplicationContextAware{
 	@Bean
 	public static PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() throws IOException{
 		ClassPathResource resource = new ClassPathResource("config.properties");
-		logger.debug("propertyPlaceholderConfigurer, class path: " + new ClassPathResource("").getFile().getAbsolutePath());
+		System.out.println("propertyPlaceholderConfigurer, class path: " + new ClassPathResource("").getFile().getAbsolutePath());
 		PropertyPlaceholderConfigurer p = new PropertyPlaceholderConfigurer();
 		
 		Resource[] resources = new Resource[] {resource}; 

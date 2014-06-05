@@ -5,9 +5,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.NamedQuery;
 import javax.validation.Valid;
 
 import org.apache.commons.lang.StringUtils;
@@ -25,6 +28,8 @@ import org.hibernate.transform.ResultTransformer;
 import org.hibernate.type.Type;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.tennissetapp.Constants;
 import com.tennissetapp.args.AddressArgs;
 import com.tennissetapp.args.CreateFavoriteTeacherArgs;
 import com.tennissetapp.args.CreateMatchArgs;
@@ -47,6 +52,7 @@ import com.tennissetapp.args.SearchTennisCourtsArgs;
 import com.tennissetapp.args.SearchTennisTeachersArgs;
 import com.tennissetapp.args.SignupArgs;
 import com.tennissetapp.args.UpdateTennisDetailsArgs;
+import com.tennissetapp.args.UpdateTokenArgs;
 import com.tennissetapp.args.UserAccountPrimaryArgs;
 import com.tennissetapp.exception.DateExpriedException;
 import com.tennissetapp.exception.DuplicateRecordException;
@@ -57,6 +63,7 @@ import com.tennissetapp.forms.TeacherProfileForm;
 import com.tennissetapp.forms.UpdateProfileImageForm;
 import com.tennissetapp.persistence.entities.Address;
 import com.tennissetapp.persistence.entities.CalendarEventSelect;
+import com.tennissetapp.persistence.entities.GcmToken;
 import com.tennissetapp.persistence.entities.CountEntity;
 import com.tennissetapp.persistence.entities.CourtSelect;
 import com.tennissetapp.persistence.entities.FavoriteTeacher;
@@ -164,51 +171,41 @@ public class DaoManagerImpl implements DaoManager{
 		return (Long)query.uniqueResult() > 0;
 	}
 	
-//	@Override
-//	public TennisPlayerProfile createPlayerProfile(CreateProfileArgs args){
-//		TennisPlayerProfile profile = null;
-//		UserAccount userAccount = find(UserAccount.class,args.userAccountId);
-//		if(userAccount != null){
-//			profile = userAccount.getPlayerProfile();
-//			if(profile == null){
-//				profile = newPlayerProfile(userAccount);
-//			}
-//			userAccount.setBirthDate(args.birthYear + "-" + args.birthMonth + "-" + args.birthDay);
-//			userAccount.setFirstName(args.firstName);
-//			userAccount.setLastName(args.lastName);
-//			if(StringUtils.isNotEmpty(args.gender)){
-//				userAccount.setGender(UserAccount.Gender.valueOf(args.gender));
-//			}
-//			else{
-//				userAccount.setGender(null);
-//			}
-//			
-//			if(args.fileItem != null){
-//				try {
-//					ImageMetaData img = FileUtilities.writeImageToDisk(args.fileItem, ImageFile.SystemFolder.PROFILE_PHOTOS.toString());
-//					UpdateProfileImageForm f = new UpdateProfileImageForm();
-//					f.setImageMetaData(img);
-//					f.setUserAccountId(args.userAccountId);
-//					if(img != null){
-//						ImageFile imageFile = updatePlayerProfileImage(f);
-//						if(imageFile != null){
-////							userAccount.setProfileImageFile(imageFile);
-////							userAccount.setProfileImageFileId(imageFile.getImageFileId());
-//							profile.setProfileImageFile(imageFile);
-//							profile.setProfileImageFileId(imageFile.getImageFileId());
-//						}
-//					}
-//				} catch (Exception e) {
-//					logger.error(e.getMessage(), e);
-//				}
-//			}
-//		}
-//		else{
-//			throw new EntityNotFoundException("User account could not be found in the system");
-//		}
-//		
-//		return profile;
-//	}
+	@Override
+	public void updateToken(UpdateTokenArgs args){
+		Session s = getSession();
+		if(Constants.TokenProvider.GCM.equals(args.provider)){
+			GcmToken token = findGcmToken(args.userAccountId,args.token);
+			if(token == null){
+				token = new GcmToken();
+				token.setUserAccountId(args.userAccountId);
+				token.setCreatedOn(new Date());
+				token.setToken(args.token);
+				s.persist(token);
+			}
+			
+		}
+	}
+	
+	@Override
+	public GcmToken findGcmToken(Long userAccountId, String token){
+		Session s = getSession();
+		Query query = s.getNamedQuery("GcmToken.find");
+		query.setLong("userAccountId", userAccountId);
+		query.setString("token", token);
+		
+		return (GcmToken)query.uniqueResult();
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<GcmToken> selectGcmTokens(Long userAccountId){
+		Session s = getSession();
+		Query query = s.getNamedQuery("GcmToken.selectByUserId");
+		query.setLong("userAccountId", userAccountId);
+		
+		return query.list();
+	}
 	
 	@Override
 	public UserAccount updateAccountPrimaryFields(UserAccountPrimaryArgs args){
@@ -866,7 +863,7 @@ public class DaoManagerImpl implements DaoManager{
 		Session s = getSession();
 		ImageFile imageFile = null;
 		
-		logger.debug("updatePlayerProfileImage: " + form);
+//		logger.debug("updatePlayerProfileImage: " + form);
 		if(form.getUserAccountId() != null){
 			Query query = s.getNamedQuery("TennisPlayerProfile.findProfileImageFile");
 			query.setLong("userAccountId", form.getUserAccountId());
@@ -913,11 +910,73 @@ public class DaoManagerImpl implements DaoManager{
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<UserPost> scrollUserPosts(ScrollMessagesArgs args) {
-		Query query = getSession().getNamedQuery("UserPost.selectByRecipient");
+		Query query;
+		List<UserPost> list = Lists.newArrayList();
+		
+		query = getSession().getNamedQuery("UserPost.selectLastIncommingPosts");
 		query.setLong("userAccountId", args.userAccountId);
 		query.setFirstResult((int)args.firstResult);
 		query.setMaxResults(args.maxResults);
-		return query.list();
+		list.addAll(query.list());
+		
+		query = getSession().getNamedQuery("UserPost.selectLastOutgoingPosts");
+		query.setLong("userAccountId", args.userAccountId);
+		query.setFirstResult((int)args.firstResult);
+		query.setMaxResults(args.maxResults);
+		list.addAll(query.list());
+		
+		Collections.sort(list, new Comparator<UserPost>(){
+			@Override
+			public int compare(UserPost o1, UserPost o2) {
+				return o2.getPostedOn().compareTo(o1.getPostedOn());
+			}
+			
+		});
+		
+		Set<Long> set = Sets.newHashSetWithExpectedSize(list.size());
+		Iterator<UserPost> itr = list.iterator();
+		while(itr.hasNext()){
+			UserPost p = itr.next();
+//			logger.debug("ITEM key:: " + p.getToUserAccountId() + "" + p.getUserAccountId() + ", contains: "
+//					+
+//					(set.contains(p.getUserAccountId()) && set.contains(p.getToUserAccountId())));
+			if(set.contains(p.getUserAccountId()) && set.contains(p.getToUserAccountId())){
+				itr.remove();
+			}
+			else{
+				set.add(p.getUserAccountId());
+				set.add(p.getToUserAccountId());
+			}
+		}
+		
+//		logger.debug("**** THE LIST **** ");
+//		for(UserPost u : list){
+//			logger.debug("ITEM:: " + u.getUserAccountId() + ", " + u.getToUserAccountId());
+//		}
+		if(list.size() > args.maxResults){
+			return list.subList(0, args.maxResults);
+		}
+		else{
+			return list;
+		}
+		
+		
+//		Query query = getSession().getNamedQuery("UserPost.selectByRecipient");
+//		query.setLong("userAccountId", args.userAccountId);
+//		query.setFirstResult((int)args.firstResult);
+//		query.setMaxResults(args.maxResults);
+//		return query.list();
+		
+		
+//		@NamedQuery(
+//				name="UserPost.selectLastIncommingPosts",
+//				query="select p from UserPost as p where p.toUserAccountId=:userAccountId"
+//						+ "GROUP BY p.userAccountId "
+//						+ "ORDER BY p.postedOn DESC"
+//			),
+//			@NamedQuery(
+//					name="UserPost.selectLastOutgoingPosts",
+//			
 	}
 	
 	@SuppressWarnings("unchecked")

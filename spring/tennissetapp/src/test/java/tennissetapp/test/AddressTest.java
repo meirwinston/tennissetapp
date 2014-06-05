@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +42,7 @@ import com.tennissetapp.config.DataConfig;
 import com.tennissetapp.config.RootConfig;
 import com.tennissetapp.config.SecurityConfig;
 import com.tennissetapp.config.SocialConfig;
+import com.tennissetapp.json.JacksonUtils;
 import com.tennissetapp.persistence.dao.DaoManager;
 import com.tennissetapp.persistence.entities.Address;
 import com.tennissetapp.persistence.entities.ImageFile;
@@ -255,6 +259,131 @@ public class AddressTest {
 		}
     }
     
+    //-------------------
+    
+    
+    //----------------
+    
+    //http://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=40.7215618,-73.95387
+    public GeoCodeResult googleGeocode(String input) {
+		GeoCodeResult geoCode = null;
+		HttpURLConnection conn = null;
+		StringBuilder jsonResults = new StringBuilder();
+		try {
+			StringBuilder sb = new StringBuilder("http://maps.googleapis.com/maps/api/geocode/json?sensor=false");
+			sb.append("&address=" + URLEncoder.encode(input, "utf8"));
+
+			logger.info("URL " + sb);
+			URL url = new URL(sb.toString());
+			conn = (HttpURLConnection) url.openConnection();
+			InputStreamReader in = new InputStreamReader(conn.getInputStream());
+
+			// Load the results into a StringBuilder
+			int read;
+			char[] buff = new char[2048];
+			while ((read = in.read(buff)) != -1) {
+				jsonResults.append(buff, 0, read);
+			}
+		} catch (MalformedURLException e) {
+			logger.error("Error processing Places API URL", e);
+			return geoCode;
+		} catch (IOException e) {
+			logger.error("Error connecting to Places API", e);
+			return geoCode;
+		} finally {
+			if (conn != null) {
+				conn.disconnect();
+			}
+		}
+
+		try {
+			geoCode = JacksonUtils.deserializeAs(jsonResults.toString(), GeoCodeResult.class);
+		} catch (Exception e) {
+			logger.error("Cannot process JSON results", e);
+		}
+		return geoCode;
+	}
+    
+    @Test
+    public void putAddress(){
+    	logger.info("start");
+    	try {
+    		GeoCodeResult geoCode;
+//    		geoCode = googleGeocode("42.374778,-71.072388"); //botson
+//    		geoCode = googleGeocode("40.212441,-74.776612"); //trenton
+//    		geoCode = googleGeocode("40.446947,-80.006104"); //pitsburg
+    		geoCode = googleGeocode("40.730608,-74.007569"); //NY
+    		
+    		if(geoCode != null){
+    			
+    			for(GeoCodeResult.Result r : geoCode.results){
+    				Address a = new Address();
+    				a.setLatitude(r.geometry.location.lat);
+    				a.setLongitude(r.geometry.location.lng);
+    				a.setCreatedOn(new Date());
+    				
+    				for(GeoCodeResult.AddressComponent c : r.address_components){
+    					
+    					if(c.types.contains("administrative_area_level_1")){
+        					a.setAdministrativeAreaLevel1(c.long_name);
+            				a.setAdministrativeAreaLevel1ShortName(c.short_name);
+        				}
+        				if(c.types.contains("administrative_area_level_2")){
+        					a.setAdministrativeAreaLevel2(c.long_name);
+            				a.setAdministrativeAreaLevel2ShortName(c.short_name);
+        				}
+        				
+        				if(c.types.contains("political")){
+        					a.setPolitical(c.long_name);
+            				a.setPoliticalShortName(c.short_name);
+        				}
+        				
+        				if(c.types.contains("country")){
+        					a.setCountry(c.long_name);
+            				a.setCountryShortName(c.short_name);
+        				}
+        				
+        				if(c.types.contains("locality")){
+        					a.setLocality(c.long_name);
+            				a.setLocalityShortName(c.short_name);
+        				}
+        				
+        				if(c.types.contains("neighborhood")){
+        					a.setNeighborhood(c.long_name);
+            				a.setNeighborhoodShortName(c.short_name);
+        				}
+        				
+        				if(c.types.contains("postal_code")){
+        					a.setPostalCode(c.long_name);
+        				}
+        				
+        				if(c.types.contains("route")){
+        					a.setRoute(c.long_name);
+            				a.setRouteShortName(c.short_name);
+        				}
+        				
+        				if(c.types.contains("street_number")){
+        					a.setStreetNumber(c.long_name);
+        				}
+        				
+        				if(c.types.contains("sublocality")){
+        					a.setSublocality(c.long_name);
+            				a.setSublocalityShortName(c.short_name);        					
+        				}	
+    				}
+    				daoManager.insertAddress(a, 0);	    				
+    			}
+    				
+    		}
+    		
+		} 
+    	catch (Exception e) {
+			logger.error(e.getMessage(),e);
+		}
+    }
+    
+    //-------------
+    
 //  @Test
     public void countMapObjectSize(){
     	try {
@@ -319,7 +448,7 @@ public class AddressTest {
     	
     }
     
-    @Test
+//    @Test
     public void storeCourtsImages(){
     	try {
     		final Session session = daoManager.getNewSession();

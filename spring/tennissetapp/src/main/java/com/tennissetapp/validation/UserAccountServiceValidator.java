@@ -8,13 +8,14 @@ import org.springframework.validation.Errors;
 
 import com.tennissetapp.args.SigninArgs;
 import com.tennissetapp.args.SignupArgs;
+import com.tennissetapp.args.UpdateTokenArgs;
 import com.tennissetapp.args.UserAccountPrimaryArgs;
 import com.tennissetapp.forms.AddressForm;
 import com.tennissetapp.forms.SigninForm;
 import com.tennissetapp.forms.SignupForm;
+import com.tennissetapp.forms.UpdateTokenForm;
 import com.tennissetapp.forms.UserAccountPrimaryForm;
 import com.tennissetapp.persistence.entities.UserAccount;
-import com.tennissetapp.validation.Validator.ErrorCode;
 
 public class UserAccountServiceValidator extends Validator{
 	protected Logger logger = Logger.getLogger(getClass());
@@ -33,7 +34,8 @@ public class UserAccountServiceValidator extends Validator{
 	public boolean supports(Class<?> clazz) {
 		return SignupForm.class.equals(clazz) || 
 				SigninForm.class.equals(clazz) ||
-				UserAccountPrimaryForm.class.equals(clazz);
+				UserAccountPrimaryForm.class.equals(clazz) ||
+				UpdateTokenForm.class.equals(clazz);
 	}
 
 	@Override
@@ -50,6 +52,10 @@ public class UserAccountServiceValidator extends Validator{
 		else if(target instanceof UserAccountPrimaryForm){
 			validate((UserAccountPrimaryForm)target,errors);
 		}
+		else if(target instanceof UpdateTokenForm){
+			validate((UpdateTokenForm)target,errors);
+		}
+		
 		
 	}
 
@@ -179,7 +185,7 @@ public class UserAccountServiceValidator extends Validator{
 		else{
 			matcher = emailPattern.matcher(form.getJ_username());
 			if(!matcher.matches()){
-				errors.rejectValue("email", ErrorCode.INVALID_EXPRESSION, "Invalid email expression");
+				errors.rejectValue("j_username", ErrorCode.INVALID_EXPRESSION, "Invalid email expression");
 			}
 			else{
 				args.email = form.getJ_username();
@@ -195,6 +201,26 @@ public class UserAccountServiceValidator extends Validator{
 		if(!errors.hasErrors()){
 			args.email = form.getJ_username();
 			args.password = form.getJ_password();
+			form.setArguments(args);
+		}
+	}
+	
+	public void validate(UpdateTokenForm form, Errors errors) {
+		UpdateTokenArgs args = new UpdateTokenArgs();
+		if(StringUtils.isEmpty(form.getToken())){
+			errors.rejectValue("token", ErrorCode.EMPTY_FIELD, "Token cannot be empty");
+		}
+		else{
+			args.token = form.getToken();
+		}
+		if(StringUtils.isEmpty(form.getProvider())){
+			errors.rejectValue("provider", ErrorCode.EMPTY_FIELD, "Provider cannot be empty");
+		}
+		else{
+			args.provider = form.getProvider();
+		}
+		
+		if(!errors.hasErrors()){
 			form.setArguments(args);
 		}
 	}

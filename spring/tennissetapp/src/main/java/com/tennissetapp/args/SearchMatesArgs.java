@@ -26,7 +26,7 @@ public class SearchMatesArgs extends ScrollArgs{
 	
 	//distance
 	public Double distance;
-	
+
 	@Override
 	public String toString() {
 		return "SearchMatesArgs [playSingles=" + playSingles + ", playDoubles="
@@ -43,4 +43,5 @@ public class SearchMatesArgs extends ScrollArgs{
 				+ ", availableWeekdayEvening=" + availableWeekdayEvening
 				+ ", distance=" + distance + "]";
 	}
+	
 }

@@ -83,7 +83,7 @@ public class MatesService extends AbstractService{
 				newArgs.levelOfPlayMin = userAccount.getPlayerProfile().getLevelOfPlay();
 				newArgs.levelOfPlayMax = userAccount.getPlayerProfile().getLevelOfPlay();
 			}
-			else{
+			else{ //these fields are not filtered, these are just order criteria
 				newArgs.playDoubles = true;
 				newArgs.playFullMatch = true;
 				newArgs.playHittingAround = true;
@@ -92,7 +92,7 @@ public class MatesService extends AbstractService{
 				newArgs.levelOfPlayMin = 1f;
 				newArgs.levelOfPlayMax = 7f;
 			}
-			
+			logger.debug("nearbyTennisMates args " + args);
 			
 			List<MateSelect> list = daoManager.searchMateItems(newArgs);
 			for(MateSelect m : list){

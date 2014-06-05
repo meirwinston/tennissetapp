@@ -13,6 +13,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -21,15 +23,33 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import com.tennissetapp.json.UserPostSerializer;
 
+@NamedNativeQueries(
+	@NamedNativeQuery(
+		name="UserPost.countByRecipient",
+		query="SELECT COUNT(c.userAccountId) FROM (SELECT p.userAccountId FROM user_posts AS p "
+				+ "WHERE p.toUserAccountId=:userAccountId OR p.userAccountId=:userAccountId "
+				+ "GROUP BY p.userAccountId) AS c"
+	)
+)
 @NamedQueries({
 	@NamedQuery(
 		name="UserPost.selectByRecipient",
-		query="select p from UserPost as p where p.toUserAccountId=:userAccountId ORDER BY p.postedOn DESC"
+		query="select p from UserPost as p where p.toUserAccountId=:userAccountId OR p.userAccountId=:userAccountId "
+				+ "GROUP BY p.userAccountId "
+				+ "ORDER BY p.postedOn DESC"
 	),
 	@NamedQuery(
-		name="UserPost.countByRecipient",
-		query="select COUNT(p.userPostId) from UserPost as p where p.toUserAccountId=:userAccountId"
+		name="UserPost.selectLastIncommingPosts",
+		query="select p from UserPost as p where p.toUserAccountId=:userAccountId "
+				+ "GROUP BY p.userAccountId "
+				+ "ORDER BY p.postedOn DESC"
 	),
+	@NamedQuery(
+			name="UserPost.selectLastOutgoingPosts",
+			query="select p from UserPost as p where p.userAccountId=:userAccountId "
+					+ "GROUP BY p.toUserAccountId "
+					+ "ORDER BY p.postedOn DESC"
+		),
 	@NamedQuery(
 		name="UserPost.selectConversation",
 		query="select up "

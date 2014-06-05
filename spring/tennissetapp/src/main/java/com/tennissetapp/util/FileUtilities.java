@@ -3,6 +3,7 @@ package com.tennissetapp.util;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,12 +11,16 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.UUID;
+
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+
 import net.coobird.thumbnailator.Thumbnails;
+
 import org.apache.commons.fileupload.FileItem;
 import org.apache.log4j.Logger;
+
 import com.tennissetapp.config.RootConfig;
 import com.tennissetapp.persistence.entities.ImageFile;
 
@@ -37,6 +42,13 @@ public class FileUtilities {
 		if(file.length() > 51200) { //50KB
 			File thumbFile = new File(fileFullPath + "/THUMBNAILS/" + fileName + "." + imageFormat);
 			Thumbnails.of(file).size(200, 200).keepAspectRatio(true).toFile(thumbFile);
+		}
+		else{ //otherwise, copy the same image in the THUMBNAILS DIRECTORY
+			File thumbFile = new File(fileFullPath + "/THUMBNAILS/" + fileName + "." + imageFormat);
+			FileOutputStream out = new FileOutputStream(thumbFile);
+			FileInputStream in = new FileInputStream(file);
+			org.apache.commons.io.IOUtils.copy(in, out);
+			in.close();
 		}
 		
 		

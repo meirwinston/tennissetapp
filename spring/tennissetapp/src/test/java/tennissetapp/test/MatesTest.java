@@ -45,7 +45,7 @@ public class MatesTest {
 		logger.debug("::::" + daoManager.testScalar());
 	}
 	
-	@Test
+//	@Test
 	public void searchMatesByUsernameOrEmail(){
 		SearchMatesByNameArgs args = new SearchMatesByNameArgs();
 //		args.playSingles = false;
@@ -73,28 +73,29 @@ public class MatesTest {
 		logger.info("list: " + list);
 	}
 	
-//	@Test
+	//SELECT * FROM addresses WHERE latitude=42.3753392 AND longitude=-71.0731512;
+	@Test
 	public void searchMates(){
-		SearchMatesArgs args = new SearchMatesArgs();
-		args.playSingles = false;
-		args.playDoubles = true;
-		args.playFullMatch = false;
-		args.playPoints = false;
-		args.playHittingAround = false;
+		SearchMatesArgs a1 = new SearchMatesArgs();
+		a1.playSingles = false;
+		a1.playDoubles = true;
+		a1.playFullMatch = false;
+		a1.playPoints = false;
+		a1.playHittingAround = false;
 		//
-		args.latitude = 40.4244357;
-		args.longitude = -74.4221905;
-		args.levelOfPlayMin = 1.5f;
-		args.levelOfPlayMax = 3.5f;
-		args.distance = 50d;
-		args.firstResult = 0l;
-		args.maxResults = 2;
+		a1.latitude = 42.3753392;
+		a1.longitude = -71.0731512;
+		a1.levelOfPlayMin = 1.5f;
+		a1.levelOfPlayMax = 3.5f;
+		a1.distance = 50d;
+		a1.firstResult = 0l;
+		a1.maxResults = 10;
 		
 //		Object count = daoManager.countNearbyMates(args.latitude,args.longitude,args.distance);
 ////		Object count = daoManager.countNearbyMates(40.4244357,-74.4221905,50d);
 //		logger.info("count is: " + count);
-		List<MateSelect> list = daoManager.searchMateItems(args);
-		Object count = daoManager.countNearbyMates(args.latitude,args.longitude,args.distance);
+		List<MateSelect> list = daoManager.searchMateItems(a1);
+		Object count = daoManager.countNearbyMates(a1.latitude,a1.longitude,a1.distance);
 		logger.info("size: " + list.size() + ", count is: " + count);
 		Assert.assertNotNull(list);
 		Assert.assertTrue(list.size() > 0);

@@ -85,7 +85,7 @@ public class DataConfig {
 		bean.setPackagesToScan(Address.class.getPackage().getName());
 		Properties hibernateProperties = new Properties();
 		hibernateProperties.put("hibernate.dialect", CustomDialect.class.getName());
-		hibernateProperties.put("hibernate.show_sql", true);
+		hibernateProperties.put("hibernate.show_sql", false);
 		bean.setHibernateProperties(hibernateProperties);
 		return bean;
 	}

@@ -79,6 +79,12 @@ public class MessageServiceValidator extends Validator{
 		else{
 			errors.rejectValue("message", ErrorCode.EMPTY_FIELD, "Message cannot be empty");
 		}
+		if(StringUtils.isNotEmpty(form.getToken())){
+			args.token = form.getToken();
+		}
+		else{
+			errors.rejectValue("token", ErrorCode.EMPTY_FIELD, "No token provided!");
+		}
 		if(!errors.hasErrors()){
 			form.setArguments(args);
 		}

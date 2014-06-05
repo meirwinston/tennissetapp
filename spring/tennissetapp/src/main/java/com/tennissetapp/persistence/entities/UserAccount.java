@@ -1,6 +1,7 @@
 package com.tennissetapp.persistence.entities;
 
 import java.util.Date;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
@@ -336,12 +337,6 @@ public class UserAccount{
 	public void setBirthDate(String birthDate) {
 		this.birthDate = birthDate;
 	}
-//	public String getAboutMe() {
-//		return aboutMe;
-//	}
-//	public void setAboutMe(String aboutMe) {
-//		this.aboutMe = aboutMe;
-//	}
 
 	public TennisPlayerProfile getPlayerProfile() {
 		return playerProfile;
@@ -359,22 +354,6 @@ public class UserAccount{
 		this.teacherProfile = teacherProfile;
 	}
 	
-//	public Long getProfileImageFileId() {
-//		return profileImageFileId;
-//	}
-//
-//	public void setProfileImageFileId(Long profileImageFileId) {
-//		this.profileImageFileId = profileImageFileId;
-//	}
-//
-//	public ImageFile getProfileImageFile() {
-//		return profileImageFile;
-//	}
-//
-//	public void setProfileImageFile(ImageFile profileImageFile) {
-//		this.profileImageFile = profileImageFile;
-//	}
-
 	public String getActivationToken() {
 		return activationToken;
 	}
@@ -406,6 +385,7 @@ public class UserAccount{
 	public void setAddressLongitude(Double addressLongitude) {
 		this.addressLongitude = addressLongitude;
 	}
+
 
 //	@Override
 //	public String toString() {

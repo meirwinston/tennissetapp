@@ -2,13 +2,10 @@ package com.tennissetapp.rest;
 
 import java.io.IOException;
 import java.security.Principal;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-
-import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +16,7 @@ import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -28,22 +26,20 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.tennissetapp.Constants;
-import com.tennissetapp.args.CreatePlayerProfileArgs;
 import com.tennissetapp.args.SigninArgs;
 import com.tennissetapp.args.SignupArgs;
+import com.tennissetapp.args.UpdateTokenArgs;
 import com.tennissetapp.args.UserAccountPrimaryArgs;
 import com.tennissetapp.auth.AppUserDetails;
 import com.tennissetapp.controller.response.ServiceResponse;
 import com.tennissetapp.exception.DuplicateRecordException;
-import com.tennissetapp.forms.CreatePlayerProfileForm;
 import com.tennissetapp.forms.SigninForm;
 import com.tennissetapp.forms.SignupForm;
+import com.tennissetapp.forms.UpdateTokenForm;
 import com.tennissetapp.forms.UserAccountPrimaryForm;
 import com.tennissetapp.json.JacksonUtils;
 import com.tennissetapp.persistence.dao.DaoManager;
-import com.tennissetapp.persistence.entities.TennisPlayerProfile;
 import com.tennissetapp.persistence.entities.UserAccount;
 import com.tennissetapp.persistence.entities.UserAccount.AccountStatus;
 import com.tennissetapp.util.TennisSetAppUtils;
@@ -68,6 +64,9 @@ public class UserAccountService {
 	
 	@Inject
 	protected UserDetailsService userDetailsService;
+	
+	@Inject 
+	protected SecurityContextLogoutHandler securityContextLogoutHandler;
 	
 	@InitBinder
     protected void initBinder(WebDataBinder binder) {
@@ -145,6 +144,19 @@ public class UserAccountService {
 	@PreAuthorize("hasRole('ROLE_USER')")
 	@Transactional
 	@ResponseBody
+	@RequestMapping(value = {"/service/updateToken"}, method = {RequestMethod.POST})
+	public ServiceResponse updateTocken(@Valid UpdateTokenForm form,Principal p){
+		ServiceResponse response = new ServiceResponse();
+		UpdateTokenArgs args = form.getArguments(UpdateTokenArgs.class);
+		args.userAccountId = TennisSetAppUtils.cast(p).getUserAccountId();
+		daoManager.updateToken(args);
+		response.put("userAccountId", args.userAccountId);
+		return response;
+	}
+	
+	@PreAuthorize("hasRole('ROLE_USER')")
+	@Transactional
+	@ResponseBody
 	@RequestMapping(value = {"/service/testAuth"}, method = {RequestMethod.POST})
 	public ServiceResponse testAuth(Principal p){
 		ServiceResponse r = new ServiceResponse();
@@ -164,6 +176,20 @@ public class UserAccountService {
 		}
 		
 		return r;
+	}
+	
+	@ResponseBody
+	@RequestMapping(value = {"/service/logout"}, method = {RequestMethod.POST})
+	public ServiceResponse logout(HttpServletRequest request){
+		ServiceResponse response = new ServiceResponse();
+		try {
+			securityContextLogoutHandler.setClearAuthentication(true);
+			request.getSession().invalidate();
+			logger.debug("user logged out ");
+		} catch (Exception exp) {
+			response.put("exception", exp.getMessage());
+		}
+		return response;
 	}
 	
 	@ResponseBody

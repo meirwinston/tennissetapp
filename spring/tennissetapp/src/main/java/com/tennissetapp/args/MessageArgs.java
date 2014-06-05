@@ -7,12 +7,12 @@ public class MessageArgs implements Arguments{
 	public Long toUserAccountId;
 	public String message;
 	public Date createdOn;
+	public String token;
 	@Override
 	public String toString() {
 		return "MessageArgs [userAccountId=" + userAccountId
 				+ ", toUserAccountId=" + toUserAccountId + ", message="
-				+ message + ", createdOn=" + createdOn + "]";
+				+ message + ", createdOn=" + createdOn + ", token=" + token
+				+ "]";
 	}
-	
-	
 }

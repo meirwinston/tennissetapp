@@ -114,6 +114,7 @@ public class FileUploadService extends ControllerBase{
 				response.setContentType("text/html");
 				for(FileItem fileItem : fileItemList){
 					img = FileUtilities.writeImageToDisk(fileItem, ImageFile.SystemFolder.PROFILE_PHOTOS.toString());
+					
 				}
 			}
 			else{
